@@ -1,14 +1,15 @@
-#include<stdio.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include <string.h> // Include for strlen
 
-void swap(double *a, double *b) {			//	Ability to swap numbers for bubble sort
+void swap(double *a, double *b) {			//	Ability to swap numbers for bubble sort, using pointers so no need to pass around
     double num = *a;
     *a = *b;
     *b = num;
 }
 
-void bubbleSort(double arr[], int size){	//	Bubble Sorting algorythmn 
+void bubbleSort(double arr[], int size){	//	Bubble Sorting algorythmn , using pointers so no need to pass around
 	for(int j = 0; j < size-1; j++){
 		for(int k = 0; k < size-1; k++){
 			if(arr[k] > arr[k+1]){
@@ -21,9 +22,9 @@ void bubbleSort(double arr[], int size){	//	Bubble Sorting algorythmn
 double findMedian(double arr[], int start, int end){	//	Median function to be reused for lower and upper and entire array
 	int size = end - start + 1;
 	int halfSize = size / 2;
-	if(size%2 == 0)					//	If the array is an even number, you have to find avg of two numbers clossest to middle
+	if(size%2 == 0)										//	If the array is an even number, you have to find avg of two numbers clossest to middle
 		return (arr[start + halfSize - 1] + arr[start + halfSize]) / 2.0;
-	else{								//	Else you can directly take the middle number
+	else{												//	Else you can directly take the middle number
 		return arr[start + size / 2];
 	}
 }
@@ -36,99 +37,147 @@ double mean(double arr[], int size){	//Average function
 	return sum/size;		
 }
 
-void findQuartiles(double arr[], int size, double *Q1, double *Q2, double *Q3){		//	Process Median for 
-    bubbleSort(arr, size); 					//	Sort array
+void findQuartiles(double arr[], int size, double *Q1, double *Q2, double *Q3){		//	Process Median for entire, upper and lower of array, using pointers so no need to pass around
+    bubbleSort(arr, size); 									//	Sort array
     int halfSize = size / 2;
-    *Q2 = findMedian(arr, 0, size); 			//	Median of the entire array
-    if(size%2 == 0){
-		*Q1 = findMedian(arr, 0, halfSize - 1); 		//	Median of the lower half (0 to halfsize - 1)
-		*Q3 = findMedian(arr, halfSize, size - 1);		//	Median of the upper half (halfsize to size - 1)
-	}
-    else {											//	Odd nubmer of days		Example... (0, 1, 2, 3, 4)	ignore the number 2...
-        *Q1 = findMedian(arr, 0, halfSize - 1);		//	Median of the lower half
+    *Q2 = findMedian(arr, 0, size); 						//	Median of the entire array
+    if(size%2 == 0){										//	If the entire array is even do the following to calculate upper and lower median
+		*Q1 = findMedian(arr, 0, halfSize - 1); 			//	Median of the lower half (0 to halfsize - 1)
+		*Q3 = findMedian(arr, halfSize, size - 1);			//	Median of the upper half (halfsize to size - 1)
+	}															
+    else {													//	Else the entire array is odd do the following to calculate upper and lower median
+        *Q1 = findMedian(arr, 0, halfSize - 1);				//	Median of the lower half
         *Q3 = findMedian(arr, halfSize + 1, size - 1);		//	Median of the upper half
     }
 
 }
- 
 
-int main() {
-    FILE* in;
-    char input[100];						//	Handles input of file
-    double temp[366][2], temp1, temp2;		//	Storing Day and Temperature pre-handdling of leap year
-    double unsortedTemp[732];
+int sizeOfArray(char* filename){
+	FILE* in = fopen(filename, "r"); 		// Open the file
+    char input[100];						//	Handles maximum number of chacters for fgets function
+    double temp1, temp2;					//	Store temperature for eachline of file, since each line can have maximum two temperature lines
     int id, count = 0;
     
-	in = fopen("avgtemps-s_1995-2025_C.csv", "r");		//	Opening Temperature File
-    while(fgets(input, sizeof(input), in) != NULL){		
-		//	Reading using fgets(*variable, *length. *means of input), loop until end of file
-		//printf("%s\n", input);							//	Printing out what the C program is reading (1 line)						
-		
-		//input[strlen(input)-1] = '\0';					//	\n kept at end if input smaller than array size, replace it with \0
-		//printf("Length: %zu\n", strlen(input));			//	print out length of input "%zu" special format for length in C
-		
+    while(fgets(input, sizeof(input), in) != NULL){				
+		//printf("Read line: %s", input);
 		int result = sscanf(input, "%d,%lf,%lf", &id, &temp1, &temp2);		//	sscan scans the numbers and saves the into specific format
-		//printf("%d\n", result);												//	result represents how many numbers were detected
 		
 		if (result == 3) {
-            // Two numbers were read
-            //printf("ID: %d, Number 1: %.6f, Number 2: %.6f\n", id, temp1, temp2);		//	Displaying the day and the two temeprature	
-            temp[id-1][0] = temp1;
+            count = count + 1;		//	If there are two files in a line
+            count = count + 1;
+        } 
+        else if (result == 2) {
+            count = count + 1;		//	If there is only files in a line
+        } 
+        else {
+
+        }
+				
+    }
+    
+    return count; // Return the total number of temperatures
+    fclose(in);		
+	
+}
+
+double* readTempArray(char* filename, int size){
+	FILE* in = fopen(filename, "r"); 	// Open the file
+    char input[100];					//	Handles maximum number of chacters for fgets function
+    double temp1, temp2;				//	Store temperature for eachline of file, since each line can have maximum two temperature lines
+    double unsortedTemp[732];			//	Maxiumum possible ammount of temeprature of any given file, since there can be a maximum of 366 days and each day have 2 temmps
+    int id, count = 0;
+    
+    double* array = (double*)malloc(size * sizeof(double));		//	Source of how to pass on array from function back to main for C - https://www.geeksforgeeks.org/return-an-array-in-c/#return-an-array-in-c-using-pointers
+    
+    while(fgets(input, sizeof(input), in) != NULL){		
+		
+		int result = sscanf(input, "%d,%lf,%lf", &id, &temp1, &temp2);		//	sscan scans the numbers and saves the into specific format
+		
+		if (result == 3) {
+            //	Two numbers were read
             unsortedTemp[count] = temp1;
             count = count + 1;
-            temp[id-1][1] = temp2;
             unsortedTemp[count] = temp2;
             count = count + 1;
         } 
         else if (result == 2) {
-            // Only one number was read
-            //printf("ID: %d, Number 1: %.6f\n", id, temp1);	//	Displaying the day and only one temeprature	(cause the spreadsheet somtimes has one measurement per day instead of the usual)
-            temp[id-1][0] = temp1;
+			//	One numbers were read
             unsortedTemp[count] = temp1;
-            count = count + 1;
-            temp[id-1][1] = 0; 									// Default value for missing temperature
+            count = count + 1;									
 
         } 
         else {
-            // No numbers were read (invalid line)
-            //printf("Skipping invalid line: %s\n", input);
         }
 				
     }
     fclose(in);
     
-    // Print the stored temperatures (for verification)
-    for (int i = 0; i < 366; i++) {
-        //printf("Day %d: Temp1 = %.6f, Temp2 = %.6f\n", i + 1, temp[i][0], temp[i][1]);
-    }
     
-    //printf("Unsorted Temp: \n");		//Printing out all temperatures from the unsorted(trailing 0s) 1d array (for verificiation)
-    //printf("%d", count);
     double oneDtemp[count];				//Storing the unsortedarray with trailing zeros into a custom array that fits the size perfectly
     for (int i = 0; i < count; i++) {
-		//printf("%d\n", i);
 		oneDtemp[i] = unsortedTemp[i];
+		array[i] = oneDtemp[i];
         //printf("%.6f\n", oneDtemp[i]);
-        //printf("%.6f\n", unsortedTemp[i]);
     }
+    return array;	//Returning array back to the function that called it (displayQuartiles)
     
-    /*									//	Testing if bubble sorting works
-    bubbleSort(oneDtemp, count);
-    printf("\n");
-    for (int i = 0; i < count; i++) {
-        printf("%.6f\n", oneDtemp[i]);
-    }
-    */
-    
-    printf("\n");
-    double Q1, Q2, Q3;
-	findQuartiles(oneDtemp, count, &Q1, &Q2, &Q3);
-    printf("Minimum: %.6f\n", oneDtemp[0]);
-    printf("Maximum: %.6f\n", oneDtemp[count - 1]);
+}
+
+void displayQuartiles(char* filename, int size){
+	double* temperature = readTempArray(filename, size);		//	Creating array of all temp with right size
+	
+    double Q1, Q2, Q3;											//	Calculating Median, Mean, etc...
+    findQuartiles(temperature, size, &Q1, &Q2, &Q3);	
+    printf("\n");												//	Displaying Calculations
+    printf("Minimum: %.6f\n", temperature[0]);
+    printf("Maximum: %.6f\n", temperature[size - 1]);
     printf("Q1: %.6f\n", Q1);
     printf("Q2 (Median): %.6f\n", Q2);
     printf("Q3: %.6f\n", Q3);
-    printf("Mean: %.6f\n", mean(oneDtemp, count));
+    printf("Mean: %.6f\n", mean(temperature, size));
+	
+}
+
+int main() {
+	printf("Lake Superior Data:\n");							//	Pass to calculations and display function...
+	char* filename = "avgtemps-s_1995-2025_C.csv"; 				//	Opening Temperature File
+	int size = sizeOfArray(filename);							//	Calculating Size of Temperature File
+	displayQuartiles(filename, size);							//	Pass to calculations and display function...
+	
+	printf("\n\nLake Michigan Data:\n");
+	filename = "avgtemps-m_1995-2025_C.csv"; 				
+	size = sizeOfArray(filename);							
+	displayQuartiles(filename, size);
+	
+	printf("\n\nLake Huron Data:\n");
+	filename = "avgtemps-h_1995-2025_C.csv"; 				
+	size = sizeOfArray(filename);							
+	displayQuartiles(filename, size);
+	
+	printf("\n\nLake Ontario Data:\n");
+	filename = "avgtemps-o_1995-2025_C.csv"; 				
+	size = sizeOfArray(filename);							
+	displayQuartiles(filename, size);
+	
+	printf("\n\nLake Erie Data:\n");
+	filename = "avgtemps-e_1995-2025_C.csv"; 				
+	size = sizeOfArray(filename);							
+	displayQuartiles(filename, size);
+	
+	printf("\n\nLake St. Clair Data:\n");					
+	filename = "avgtemps-c_1995-2025_C.csv"; 				
+	size = sizeOfArray(filename);							
+	displayQuartiles(filename, size);						
+	
+	
+	
+	/*															//	Printing out Elements of array
+	printf("Array Elements: ");
+    for (int i = 0; i < size; i++) {
+        printf("%.6lf ", temperature[i]);
+    }
+    */  
 	
     return 0;
+    
 }
