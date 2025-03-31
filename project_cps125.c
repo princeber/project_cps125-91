@@ -4,52 +4,57 @@
 #define MAX_DAYS 356
 #define MAX_VALUES 31  // Now we only store 31 values (excluding the day index)
 
-
 #include <math.h>
 #include <string.h> // Include for strlen
 
+//	Source of how to pass on array from function back to main for C - https://www.geeksforgeeks.org/return-an-array-in-c/#return-an-array-in-c-using-pointers
+
+// Converts a day number (1–365) into a month/day format
 void dayToDate(int dayNumber) {
-    // Days in each month (non-leap year)
     int num = dayNumber;
     int daysInMonth[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-    
+
     int month = 0;
     while (dayNumber > daysInMonth[month]) {
         dayNumber -= daysInMonth[month];
         month++;
     }
-    
+
     printf("Day %d out of 365 is: %d/%d\n", num, month + 1, dayNumber);
 }
 
-void swap(double *a, double *b) {			//	Ability to swap numbers for bubble sort
+// Swaps two doubles (used in sorting)
+void swap(double *a, double *b) {
     double num = *a;
     *a = *b;
     *b = num;
 }
 
-void bubbleSort(double arr[], int size){	//	Bubble Sorting algorythmn 
-	for(int j = 0; j < size-1; j++){
-		for(int k = 0; k < size-1; k++){
-			if(arr[k] > arr[k+1]){
-				swap(&arr[k], &arr[k+1]);
-			}
-		}
-	}	
+// Bubble sort for sorting temperature data
+void bubbleSort(double arr[], int size){
+    for(int j = 0; j < size-1; j++){
+        for(int k = 0; k < size-1; k++){
+            if(arr[k] > arr[k+1]){
+                swap(&arr[k], &arr[k+1]);
+            }
+        }
+    }
 }
 
-double findMedian(double arr[], int start, int end){	//	Median function to be reused for lower and upper and entire array
-    int mid = start + (end - start) / 2; // More robust midpoint calculation
+// Calculates median of a portion of an array
+double findMedian(double arr[], int start, int end){
+    int mid = start + (end - start) / 2;	//Calculating "midpoint" of the array
 
-    if (mid + 1 <= end) {
-    return (arr[mid] + arr[mid + 1]) / 2.0;
-	} 
-	else {
-		return arr[mid]; // Fallback to the middle element
-	}
+    if (mid + 1 <= end) {						// If the function does not have a 
+        return (arr[mid] + arr[mid + 1]) / 2.0;	//Mediam calculation that handles odd arrays
+    } 
+    else {
+        return arr[mid];
+    }
 }
 
-double mean(double arr[], int size){	//Average function
+// Calculates mean of an array
+double mean(double arr[], int size){	
 	double sum = 0;
 	for(int i = 0; i < size; i++){
 		sum = sum + arr[i];
@@ -57,10 +62,12 @@ double mean(double arr[], int size){	//Average function
 	return sum/size;		
 }
 
-void findQuartiles(double arr[], int size, double *Q1, double *Q2, double *Q3){		//	Process Median for 
+// Calculates Q1, Q2, and Q3 (quartiles) of the array
+void findQuartiles(double arr[], int size, double *Q1, double *Q2, double *Q3){		 
     bubbleSort(arr, size); 					//	Sort array
     
     /*
+    DEBUG
     for (int j = 0; j < MAX_VALUES; j++){
 		printf("%.6f ", arr[j]);
 	}
@@ -69,14 +76,15 @@ void findQuartiles(double arr[], int size, double *Q1, double *Q2, double *Q3){	
     *Q2 = findMedian(arr, 0, size - 1); 			//	Median of the entire array
     if(size%2 == 0){
 		*Q1 = findMedian(arr, 0, size/2 - 1); 		//	Median of the lower half (0 to halfsize - 1)
-		*Q3 = findMedian(arr, size/2, size - 1);		//	Median of the upper half (halfsize to size - 1)
+		*Q3 = findMedian(arr, size/2, size - 1);	//	Median of the upper half (halfsize to size - 1)
 	}
     else {											//	Odd nubmer of days		Example... (0, 1, 2, 3, 4)	ignore the number 2...
         *Q1 = findMedian(arr, 0, size/2 - 1);		//	Median of the lower half
-        *Q3 = findMedian(arr, size/2 + 1, size - 1);		//	Median of the upper half
+        *Q3 = findMedian(arr, size/2 + 1, size - 1);//	Median of the upper half
     }
 }
 
+// Detects outliers based on IQR method and stores them
 void detectOutliers(double arr[], int day, double** outlierArray, int size, double *Q1, double *Q3, double *IQR) {
 	*IQR = *Q3 - *Q1;		//	Compute IQR
 	
@@ -84,33 +92,36 @@ void detectOutliers(double arr[], int day, double** outlierArray, int size, doub
     double lowerBound = *Q1 - 1.5 * *IQR;
     double upperBound = *Q3 + 1.5 * *IQR;
     
+    //DEBUG 	
     //printf("%.6f ", *IQR);
     //printf("%.6f ", lowerBound);
     //printf("%.6f ", upperBound);
-	
     //printf("Outliers: ");
+    
     int foundOutlier = 0;	//	Keep track of Outliers, reseting for each lake
 
 	//	If the value in array is not inbetween lower and upper bound, you add one to outlier
     for (int i = 0; i < size; i++) {
         if (arr[i] < lowerBound || arr[i] > upperBound) {
 			if(arr[i] < 40){
-				//printf("%.6f ", arr[i]);
+				//printf("%.6f ", arr[i]);	//DEBUG
 				outlierArray[day][foundOutlier] = arr[i];
 				foundOutlier = foundOutlier + 1;
 			}
         }    
     }
 
+	//DEBUG
     if (foundOutlier == 0) {
         //printf("None");
     }
     //printf("\n");
 }
 
+// Calculates and stores quartiles, min, max, mean, and outliers for a day's data
 void displayQuartiles(double* arr, double* q1Array, double* q2Array, double* q3Array, double* q4Array, double* lowArray, double* highArray, double** outlierArray, int day){
 	
-    double Q1 = 0, Q2 = 0, Q3 = 0, IQR = 0;									//	Calculating Median, Mean, etc...
+    double Q1 = 0, Q2 = 0, Q3 = 0, IQR = 0;						//	Calculating Median, Mean, etc...
     findQuartiles(arr, MAX_VALUES, &Q1, &Q2, &Q3);	
     //printf("\n");												//	Displaying Calculations
     
@@ -126,6 +137,7 @@ void displayQuartiles(double* arr, double* q1Array, double* q2Array, double* q3A
 		highArray[day] = arr[MAX_VALUES - 1];
 	}
 	
+	//Storing each quartile value into tbeir respective array
     //printf("Q1: %.6f\n", Q1);
     q1Array[day] = Q1;
     
@@ -140,12 +152,10 @@ void displayQuartiles(double* arr, double* q1Array, double* q2Array, double* q3A
     //printf("Mean: %.6f\n", mean(arr, MAX_VALUES));
     q4Array[day] = mean(arr, MAX_VALUES);
     
-    detectOutliers(arr, day, outlierArray, MAX_VALUES, &Q1, &Q3, &IQR);
-    
-    
+    detectOutliers(arr, day, outlierArray, MAX_VALUES, &Q1, &Q3, &IQR);	//Detect any outliers by using quartiles as reference
 }
 
-
+// Reads temperature data from a CSV, processes and analyzes it
 void readTempArray(char* filename) {
     FILE *file = fopen(filename, "r");
 
@@ -153,6 +163,7 @@ void readTempArray(char* filename) {
     double summerDayArray[MAX_DAYS][MAX_VALUES];
     int day_count = 0, totalTempCount = 0;
 
+	//Reading data and storing it in array data
     while (day_count < MAX_DAYS) {
         double dummy;
         // Read and ignore the first number (day index)
@@ -167,14 +178,15 @@ void readTempArray(char* filename) {
             }
             
         }
-
         day_count++;
     }
 
     fclose(file);
     
-	double* totalTemp = (double*)malloc(10680  * sizeof(double));
+    //Setting up arrays for each day   
+	double* totalTemp = (double*)malloc(10680  * sizeof(double));	
 	
+	//Index represent days, value represent respective quartile data
 	double* q1Array = (double*)malloc(MAX_DAYS  * sizeof(double));
 	double* q2Array = (double*)malloc(MAX_DAYS  * sizeof(double));
 	double* q3Array = (double*)malloc(MAX_DAYS  * sizeof(double));
@@ -182,7 +194,7 @@ void readTempArray(char* filename) {
 	double* lowArray = (double*)malloc(MAX_DAYS  * sizeof(double));
 	double* highArray = (double*)malloc(MAX_DAYS  * sizeof(double));
 	
-	
+	//Rows represent days cols represent number of outliers of that day
 	int rows = MAX_DAYS, cols = 10;
 	// Allocate memory for row pointers
     double** outlierArray = (double **)malloc(rows * sizeof(double *));
@@ -195,20 +207,19 @@ void readTempArray(char* filename) {
 	
 	// Process each day's data (now correctly excluding the day index)
     for (int i = 0; i < day_count; i++) {
-        //printf("\nDay %d's data (31 temperature values):\n", i+1);
-		double* eachDayArray = (double*)malloc(MAX_VALUES * sizeof(double));		//	Source of how to pass on array from function back to main for C - https://www.geeksforgeeks.org/return-an-array-in-c/#return-an-array-in-c-using-pointers
+        //printf("\nDay %d's data (31 temperature values):\n", i+1); DEBUG
+		double* eachDayArray = (double*)malloc(MAX_VALUES * sizeof(double));		
 		
-		
+		//Converting 2D array into 1D array of each day for easier handelling and passing of data..
 		for (int j = 0; j < MAX_VALUES; j++){
 			eachDayArray[j] = data[i][j];
-			//printf("%.6f ", eachDayArray[j]);
-			if(i >= 172 && i <= 266){
+			//printf("%.6f ", eachDayArray[j]); DEBUG
+			if(i >= 172 && i <= 266){	//Storing values of summer temperatures for later calculations
 				summerDayArray[i][j] = data[i][j];
-				
-				//printf("Summer Stuff: %.6f ", summerDayArray[i][j]);
-				
+				//printf("Summer Stuff: %.6f ", summerDayArray[i][j]); DEBUG			
 			}
 			
+			//Saving all values into on array
 			totalTemp[totalTempCount] = data[i][j];
 			totalTempCount = totalTempCount + 1;
 		}
@@ -223,6 +234,7 @@ void readTempArray(char* filename) {
 		free(eachDayArray);
     }
     
+    // Replace unreasonable quartile values
     for (int i = 0; i < day_count; i++) {
 		//printf("Stored Q2[%d]: %.6f\n", i, q2Array[i]);
 		if(q1Array[i] > 100){
@@ -239,11 +251,13 @@ void readTempArray(char* filename) {
 		}	
 	}
     
-    
+    // Output QUARTILE data per day
     printf("\nDisplay Data:\n\n");
     printf("Day: Minimum:      Maximum:      Q1(Medium Lower Bound):      Q2(Medium):      Q3(Medium Upper Bound):      Q4(Mean):      Outliers:\n");
     for (int i = 0; i < day_count; i++) {
 		printf("%3d %6.3lf        %6.3lf        %6.3lf                       %6.3lf           %6.3lf                       %6.3lf      ", i+1, lowArray[i], highArray[i], q1Array[i], q2Array[i], q3Array[i], q4Array[i]);
+		
+		//Handle printing of outliers, exluding unreasonable outliers
 		for(int j = 0; j <= 10; j++){
 			if(outlierArray[i][j] < 0.0001 || outlierArray[i][j] > 40){
 				break;
@@ -253,8 +267,8 @@ void readTempArray(char* filename) {
 					printf("\n                                                                                                                       ");	
 				}
 				printf("   %6.3lf ", outlierArray[i][j]);	
-				//printf("%d", j);
-				//printf("%d", j%3);
+				//printf("%d", j);	DEBUG
+				//printf("%d", j%3); DEBUG
 			}
 		}
 		printf("\n");			
@@ -264,10 +278,15 @@ void readTempArray(char* filename) {
     printf("\n");
     printf("Calculations of Warmest and Coldest Temperature of Lake Over 30 years:\n");
     bubbleSort(totalTemp, 10680);
-    for (int i = 0; i < (10680-2); i++) {
-		//printf("%.6f ", totalTemp[i]);
-    }
     
+    /*
+    DEBUG
+    for (int i = 0; i < (10680-2); i++) {
+		//printf("%.6f ", totalTemp[i]); 
+    }
+    */ 
+    
+    //Process of finding which day contains hottest temperature
     printf("\n");
     int NOIday = 0;
     double NOItemp = 0;
@@ -275,35 +294,38 @@ void readTempArray(char* filename) {
 		if(NOItemp < data[i][0]){
 			NOItemp = data[i][0];
 			NOIday = i;
-			//printf("Day: %d\n", NOIday);
+			//printf("Day: %d\n", NOIday); DEBUG
 		}
     }
     
+    //Process of displaying 
     for (int i = (10680-1); i > 0; i--) {
-		//printf("%.6f ", totalTemp[i]);
+		//printf("%.6f ", totalTemp[i]); DEBUG
 		if (totalTemp[i] < 30){
 			printf("Hottest Temperature: %.6f\n", totalTemp[i]);
-			//printf("Day: %d\n", NOIday);
-			dayToDate(NOIday);
+			//printf("Day: %d\n", NOIday); DEBUG
+			dayToDate(NOIday);	//Convert day to date 
 			break;
 			
 		}
     }
     
+    //Process of finding which day contains coldest temperature
     NOIday = 0, NOItemp = 1000;
     for (int i = 0; i < day_count; i++) {
 		if(NOItemp > data[i][0]){
 			NOItemp = data[i][0];
 			NOIday = i;
-			//printf("Day: %d\n", NOIday);
+			//printf("Day: %d\n", NOIday); DEBUG
 		}
     }
     
+    //Process of displaying 
     for (int i = 0; i < 10680; i++) {
 		if (totalTemp[i] > 0){
 			printf("Coldest Temperature: %.2f\n", totalTemp[i]);
-			//printf("Day: %d\n", NOIday);
-			dayToDate(NOIday);
+			//printf("Day: %d\n", NOIday); DEBUG
+			dayToDate(NOIday);	//Convert day to date format
 			break;
 			
 		}
@@ -311,7 +333,7 @@ void readTempArray(char* filename) {
     
     //Summer Calc
     
-    //Summer Avg per year per lake
+    //Summer Calculation of Avg per year
     printf("\n\n\n");
     double summerTotalSum = 0;
     double summerSum = 0;
@@ -329,7 +351,7 @@ void readTempArray(char* filename) {
 			 
 	}
 	
-	//Summer Avg Total
+	//Summer Avg Total Calculation
 	printf("\n");
 	printf("\n");
 	printf("Summer Average of Lake Over 30 Years...\n");
@@ -342,10 +364,9 @@ void readTempArray(char* filename) {
 
 
 int main() {
-	printf("Lake Superior Data:\n");							//	Pass to calculations and display function...
-	char* filename = "all_year_glsea_avg_s_C.csv"; 				//	Opening Temperature File
-	readTempArray(filename);
-
+	printf("Lake Superior Data:\n");							
+	char* filename = "all_year_glsea_avg_s_C.csv"; 				//	Setting Temperature File to Be open
+	readTempArray(filename);									//	There is a bug where It can only read 5 files, comment out one of the lakes to view last file
 
 	printf("\n\nLake Michigan Data:\n");
 	filename = "all_year_glsea_avg_m_C.csv"; 				
