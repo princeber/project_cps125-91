@@ -156,7 +156,7 @@ void displayQuartiles(double* arr, double* q1Array, double* q2Array, double* q3A
 }
 
 // Reads temperature data from a CSV, processes and analyzes it
-void readTempArray(char* filename) {
+double readTempArray(char* filename) {
     FILE *file = fopen(filename, "r");
 
     double data[MAX_DAYS][MAX_VALUES] = {0};
@@ -184,7 +184,7 @@ void readTempArray(char* filename) {
     fclose(file);
     
     //Setting up arrays for each day   
-	double* totalTemp = (double*)malloc(10680  * sizeof(double));	
+	double* totalTemp = (double*)malloc(MAX_DAYS*MAX_VALUES  * sizeof(double));	
 	
 	//Index represent days, value represent respective quartile data
 	double* q1Array = (double*)malloc(MAX_DAYS  * sizeof(double));
@@ -352,42 +352,82 @@ void readTempArray(char* filename) {
 	}
 	
 	//Summer Avg Total Calculation
+	double sumAvg = summerTotalSum / 30;
 	printf("\n");
 	printf("\n");
 	printf("Summer Average of Lake Over 30 Years...\n");
-	printf("%.2f", summerTotalSum / 30);
+	printf("%.2f", sumAvg);
 	summerTotalSum = 0;
 	
+	
 	printf("\n\n\n");
+	
+	return sumAvg;	//returning summer average of 30 years to main
 	
 }
 
 
 int main() {
+	char* filename;
+	
+	//Array of names of lakes
+	char name[6][20];
+	strcpy(name[0], "Lake Superior");
+	strcpy(name[1], "Lake Michigan");
+	strcpy(name[2], "Lake Huron");
+	strcpy(name[3], "Lake Ontario");
+	strcpy(name[4], "Lake Erie");
+	strcpy(name[5], "Lake St Clair");
+	
+	
+	double lakeSummerAvg[5]; //Array of lake summer averages of past 30 years
+	
+	
 	printf("Lake Superior Data:\n");							
-	char* filename = "all_year_glsea_avg_s_C.csv"; 				//	Setting Temperature File to Be open
-	readTempArray(filename);									//	There is a bug where It can only read 5 files, comment out one of the lakes to view last file
+	filename = "all_year_glsea_avg_s_C.csv"; 				//	Setting Temperature File to Be open
+	lakeSummerAvg[0] = readTempArray(filename);				//	Storing value of summer average of past 30 years into an array
 
 	printf("\n\nLake Michigan Data:\n");
 	filename = "all_year_glsea_avg_m_C.csv"; 				
-	readTempArray(filename);
+	lakeSummerAvg[1] = readTempArray(filename);
 	
 	printf("\n\nLake Huron Data:\n");
 	filename = "all_year_glsea_avg_h_C.csv"; 				
-	readTempArray(filename);
+	lakeSummerAvg[2] = readTempArray(filename);
 	
 	printf("\n\nLake Ontario Data:\n");
 	filename = "all_year_glsea_avg_o_C.csv"; 				
-	readTempArray(filename);
+	lakeSummerAvg[3] = readTempArray(filename);
 	
 	printf("\n\nLake Erie Data:\n");
 	filename = "all_year_glsea_avg_e_C.csv"; 				
-	readTempArray(filename);
+	lakeSummerAvg[4] = readTempArray(filename);
 	
 	printf("\n\nLake St. Clair Data:\n");					
 	filename = "all_year_glsea_avg_c_C.csv"; 				
-	readTempArray(filename);	
+	lakeSummerAvg[5] = readTempArray(filename);	
 
+	//Sorting summer averages coldest to hottest and also sorting the names too
+	for(int j = 0; j < 6; j++){
+        for(int k = 0; k < 6; k++){
+            if(lakeSummerAvg[k] > lakeSummerAvg[k+1]){
+				double num = lakeSummerAvg[k];
+				char temp = *name[k];
+                lakeSummerAvg[k] = lakeSummerAvg[k+1];
+                lakeSummerAvg[k+1] = num;
+                
+                *name[k] = *name[k+1];
+                *name[k+1] = temp;
+            }
+        }
+    }
+    
+    //Display Summer Averages hottest to coldest with respective lake
+    printf("\n\n");
+    printf("Hotest to Coldest Summer Average over 30 years of the Lakes\n\n");
+    for(int i = 5; i> -1; i--){
+		printf("%14s - %lf\n", name[i], lakeSummerAvg[i]);
+	}
 	
     return 0;
 }
