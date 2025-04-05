@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #define MAX_DAYS 365
-#define MAX_VALUES 30  // Now we only store 31 values (excluding the day index)
+#define MAX_VALUES 31  // Now we only store 31 values (excluding the day index)
 
 #include <math.h>
 #include <string.h> // Include for strlen
@@ -354,7 +354,7 @@ double readTempArray(char* filename) {
     double summerSum = 0;
     double avg = 0;
     printf("Summer Average of Year:\n");
-    for (int j = 0; j < 31; j++){
+    for (int j = 0; j < MAX_VALUES; j++){
 		for(int i = 172; i < 266; i++){
 			if(summerDayArray[i][j] > 40){
 				summerDayArray[i][j] = summerDayArray[i-1][j-1];
