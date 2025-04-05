@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAX_DAYS 356
-#define MAX_VALUES 31  // Now we only store 31 values (excluding the day index)
+#define MAX_DAYS 365
+#define MAX_VALUES 30  // Now we only store 31 values (excluding the day index)
 
 #include <math.h>
 #include <string.h> // Include for strlen
@@ -20,7 +20,12 @@ void dayToDate(int dayNumber) {
         month++;
     }
 
-    printf("Day %d out of 365 is: %d/%d\n", num, month + 1, dayNumber);
+    char nameMonths[12][4] = {
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    };
+
+    printf("Day %d out of 365 is: %s/%d\n", num, nameMonths[month], dayNumber);
 }
 
 // Swaps two doubles (used in sorting)
@@ -179,6 +184,7 @@ double readTempArray(char* filename) {
             
         }
         day_count++;
+        //printf("%d", day_count);
     }
 
     fclose(file);
@@ -235,6 +241,7 @@ double readTempArray(char* filename) {
     }
     
     // Replace unreasonable quartile values
+    /*
     for (int i = 0; i < day_count; i++) {
 		//printf("Stored Q2[%d]: %.6f\n", i, q2Array[i]);
 		if(q1Array[i] > 100){
@@ -250,6 +257,7 @@ double readTempArray(char* filename) {
 			q4Array[i] = q4Array[i-1];
 		}	
 	}
+	*/ 
     
     // Output QUARTILE data per day
     printf("\nDisplay Data:\n\n");
@@ -259,7 +267,7 @@ double readTempArray(char* filename) {
 		
 		//Handle printing of outliers, exluding unreasonable outliers
 		for(int j = 0; j <= 10; j++){
-			if(outlierArray[i][j] < 0.0001 || outlierArray[i][j] > 40){
+			if(outlierArray[i][j] < 0.0001 /*|| outlierArray[i][j] > 40*/){
 				break;
 			}
 			else{
@@ -286,50 +294,57 @@ double readTempArray(char* filename) {
     }
     */ 
     
+    double avgTemp[365];
+    
+    for (int j = 0; j < MAX_DAYS; j++){
+		double sumTemp = 0;
+		for(int i = 0; i < MAX_VALUES; i++){
+			sumTemp = data[j][i] + sumTemp;	
+		}
+		avgTemp[j] = sumTemp/MAX_VALUES;
+	}
+	
+	//for (int j = 0; j < MAX_DAYS; j++){
+		//printf("%f\n", avgTemp[j]);
+	//}
+    
+    
     //Process of finding which day contains hottest temperature
     printf("\n");
     int NOIday = 0;
     double NOItemp = 0;
-	for (int i = 0; i < day_count; i++) {
-		if(NOItemp < data[i][0]){
-			NOItemp = data[i][0];
-			NOIday = i;
-			//printf("Day: %d\n", NOIday); DEBUG
+    for (int j = 0; j < MAX_DAYS; j++){
+		if(NOItemp < avgTemp[j]){
+			NOIday = j;
+			NOItemp = avgTemp[j];
 		}
-    }
+	}
+	
+	//Process of displaying 
+	//printf("Day: %d\n", NOIday); 
+	//printf("%f\n", avgTemp[NOIday]);
+	
+	printf("Hottest Temperature: %.6f\n", avgTemp[NOIday]);
+	dayToDate(NOIday);	//Convert day to date 
     
-    //Process of displaying 
-    for (int i = (10680-1); i > 0; i--) {
-		//printf("%.6f ", totalTemp[i]); DEBUG
-		if (totalTemp[i] < 30){
-			printf("Hottest Temperature: %.6f\n", totalTemp[i]);
-			//printf("Day: %d\n", NOIday); DEBUG
-			dayToDate(NOIday);	//Convert day to date 
-			break;
-			
-		}
-    }
     
     //Process of finding which day contains coldest temperature
     NOIday = 0, NOItemp = 1000;
     for (int i = 0; i < day_count; i++) {
-		if(NOItemp > data[i][0]){
-			NOItemp = data[i][0];
+		if(NOItemp > avgTemp[i]){
+			NOItemp = avgTemp[i];
 			NOIday = i;
-			//printf("Day: %d\n", NOIday); DEBUG
+			//printf("Day: %d\n", NOIday); 
 		}
     }
+    //printf("Day: %d\n", NOIday); 
+	//printf("%f\n", avgTemp[NOIday]);
     
     //Process of displaying 
-    for (int i = 0; i < 10680; i++) {
-		if (totalTemp[i] > 0){
-			printf("Coldest Temperature: %.2f\n", totalTemp[i]);
-			//printf("Day: %d\n", NOIday); DEBUG
-			dayToDate(NOIday);	//Convert day to date format
-			break;
-			
-		}
-    }
+    printf("Coldest Temperature: %.2f\n", avgTemp[NOIday]);
+	dayToDate(NOIday);	//Convert day to date format
+    
+    
     
     //Summer Calc
     
@@ -341,6 +356,9 @@ double readTempArray(char* filename) {
     printf("Summer Average of Year:\n");
     for (int j = 0; j < 31; j++){
 		for(int i = 172; i < 266; i++){
+			if(summerDayArray[i][j] > 40){
+				summerDayArray[i][j] = summerDayArray[i-1][j-1];
+			}
 			summerSum = summerSum + summerDayArray[i][j];
 		}
 		avg = summerSum / (266-172);
