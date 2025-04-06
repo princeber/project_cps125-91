@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #define MAX_DAYS 365
-#define MAX_VALUES 31  // Now we only store 31 values (excluding the day index)
+#define MAX_VALUES 30  // Now we only store 31 values (excluding the day index)
 
 #include <math.h>
 #include <string.h> // Include for strlen
@@ -262,7 +262,7 @@ double readTempArray(char* filename) {
     // Output QUARTILE data per day
     printf("\nDisplay Data:\n\n");
     printf("Day: Minimum:      Maximum:      Q1(Medium Lower Bound):      Q2(Medium):      Q3(Medium Upper Bound):      Q4(Mean):      Outliers:\n");
-    for (int i = 0; i < day_count; i++) {
+    for (int i = 0; i < MAX_DAYS; i++) {
 		printf("%3d %6.3lf        %6.3lf        %6.3lf                       %6.3lf           %6.3lf                       %6.3lf      ", i+1, lowArray[i], highArray[i], q1Array[i], q2Array[i], q3Array[i], q4Array[i]);
 		
 		//Handle printing of outliers, exluding unreasonable outliers
