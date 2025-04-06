@@ -138,8 +138,8 @@ void displayQuartiles(double* arr, double* q1Array, double* q2Array, double* q3A
 		highArray[day] = arr[MAX_VALUES - 2];
 	}
 	else{
-		//printf("Maximum: %.6f\n", arr[MAX_VALUES - 1]);
-		highArray[day] = arr[MAX_VALUES - 1];
+		printf("Maximum: %.6f\n", arr[MAX_VALUES - 2]);
+		highArray[day] = arr[MAX_VALUES-2];
 	}
 	
 	//Storing each quartile value into tbeir respective array
