@@ -138,7 +138,7 @@ void displayQuartiles(double* arr, double* q1Array, double* q2Array, double* q3A
 		highArray[day] = arr[MAX_VALUES - 2];
 	}
 	else{
-		printf("Maximum: %.6f\n", arr[MAX_VALUES - 2]);
+		//printf("Maximum: %.6f\n", arr[MAX_VALUES - 2]);
 		highArray[day] = arr[MAX_VALUES-2];
 	}
 	
